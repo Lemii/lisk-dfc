@@ -15,8 +15,6 @@
   "useExternalForgerList": false,
   "forgersListPath": "",
   "forgersListUrl": "",
-  "shuffleInterval": 10,
-  "minimumQueue": 33,
   "minimumConsensus": 51,
   "maxRetries": 5,
   "timeout": 1500,

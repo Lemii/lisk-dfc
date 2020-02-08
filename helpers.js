@@ -121,15 +121,6 @@ const restoreBackup = () => {
   logger(`Backup successfully restored`, "INF");
 };
 
-const shouldShuffle = (previousShuffle, shuffleInterval) => {
-  const intervalTs = shuffleInterval * 60000;
-  const delta = Date.now() - previousShuffle;
-
-  logger(`Last node shuffle was ${Math.floor(delta / 60000)} minutes ago`, "INF");
-
-  return delta > intervalTs;
-};
-
 const normalizeAddresses = (apis, forgers) => ({
   apis: apis.map(api => api.replace(/\/+$/, "")),
   forgers: forgers.map(forger => forger.replace(/\/+$/, ""))
@@ -139,7 +130,6 @@ module.exports = {
   logger,
   getForgersList,
   shuffle,
-  shouldShuffle,
   saveState,
   createBackup,
   restoreBackup,

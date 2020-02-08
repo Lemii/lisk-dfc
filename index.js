@@ -5,7 +5,6 @@ const { sendMail } = require("./mailer");
 
 const {
   logger, //
-  shouldShuffle,
   saveState,
   createBackup,
   restoreBackup,
@@ -45,7 +44,7 @@ const main = async () => {
   const { apis, forgers } = normalizeAddresses(config.apis, forgersList);
 
   /* Get last used node and timestamp from the state file */
-  const { node: prevForger, ts, init } = state;
+  const { node: prevForger } = state;
 
   const api = await getValidApi(apis);
 
@@ -64,11 +63,11 @@ const main = async () => {
   }
 
   /* Analyze if a shuffle is required by validating the forging status of the node  */
-  let forceShuffle = init ? true : await ensureForgingStatus(prevForger);
+  let forceShuffle = await ensureForgingStatus(prevForger);
 
-  if (!init) await preventDoubleForging(prevForger, forgers);
+  await preventDoubleForging(prevForger, forgers);
 
-  if (forceShuffle || shouldShuffle(ts, config.shuffleInterval)) {
+  if (forceShuffle) {
     if (!api) {
       if (config.useMailer) {
         await sendMail({ type: "API WARNING" })
@@ -99,11 +98,9 @@ const main = async () => {
       }
 
       const newForgerStatus = await setForging(newForger, true);
-      const prevForgerStatus = init || forceShuffle ? false : await setForging(prevForger, false);
+      const prevForgerStatus = forceShuffle ? false : await setForging(prevForger, false);
       const stateSaved = await saveState({
         node: newForger,
-        ts: Date.now(),
-        init: false,
         missedBlocks
       });
 
@@ -114,7 +111,7 @@ const main = async () => {
         await setForging(prevForger, true);
 
         restoreBackup();
-      } else if (forceShuffle && !init && config.useMailer) {
+      } else if (forceShuffle && config.useMailer) {
         await sendMail({ type: "WARNING", nodeA: prevForger, nodeB: newForger })
           .then(() => logger("Warning mail sent!", "INF"))
           .catch(() => logger("Could not send mail!", "ERR"));
@@ -123,7 +120,7 @@ const main = async () => {
       logger(`Position ${queue} is too close to forging, skipping shuffle`, "INF");
     }
   } else {
-    logger(`Time delta of ${config.shuffleInterval} minutes not reached, skipping shuffle`, "INF");
+    logger(`No action needed.`, "INF");
   }
 
   logger("Script finished ✓\n", "INF");
