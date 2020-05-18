@@ -215,9 +215,9 @@ const ensureForgingStatus = async node => {
   return forceShuffle;
 };
 
-const preventDoubleForging = async (prevForger, forgers) => {
+const preventDoubleForging = async (keepForger, forgers) => {
   logger(`Verifying that other nodes are not forging..`, "INF");
-  const standByForgers = forgers.filter(forger => forger !== prevForger);
+  const standByForgers = forgers.filter(forger => forger !== keepForger);
 
   for (let forger of standByForgers) {
     let forgingEnabled = await fetchForgingStatus(forger);
