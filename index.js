@@ -19,8 +19,8 @@ const {
   getValidApi,
   fetchMissedBlocks,
   fetchForgingQueue,
-  ensureForgingStatus,
-  preventDoubleForging
+  preventDoubleForging,
+  getForgingNodes
 } = require("./utils");
 
 const main = async () => {
@@ -64,9 +64,12 @@ const main = async () => {
   }
 
   /* Analyze if a shuffle is required by validating the forging status of the node  */
-  let forceShuffle = init ? true : await ensureForgingStatus(prevForger);
 
-  if (!init) await preventDoubleForging(prevForger, forgers);
+  const forgingNodes = getForgingNodes(forgers);
+
+  let forceShuffle = init ? true : forgingNodes.length === 0;
+
+  if (!init) await preventDoubleForging(forgingNodes[0], forgingNodes);
 
   if (forceShuffle || shouldShuffle(ts, config.shuffleInterval)) {
     if (!api) {
