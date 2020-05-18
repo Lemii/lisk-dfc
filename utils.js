@@ -227,6 +227,25 @@ const preventDoubleForging = async (prevForger, forgers) => {
   }
 };
 
+const getForgingNodes = async (forgers) => {
+  const requests = [];
+
+  forgers.forEach(f => requests.push(fetchForgingStatus(f)));
+
+  const forgingNodes = [];
+
+  return Promise.allSettled(requests)
+    .then(statusArr => {
+      statusArr.forEach((forging, index) => {
+        if (forging) {
+          forgingNodes.push(forgers[index])
+        }
+      });
+
+      return forgingNodes;
+    })
+}
+
 module.exports = {
   fetchForgingStatus,
   fetchMissedBlocks,
@@ -235,5 +254,6 @@ module.exports = {
   getRandomForger,
   fetchForgingQueue,
   ensureForgingStatus,
-  preventDoubleForging
+  preventDoubleForging,
+  getForgingNodes
 };
