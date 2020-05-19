@@ -236,8 +236,8 @@ const getForgingNodes = async (forgers) => {
 
   return Promise.allSettled(requests)
     .then(statusArr => {
-      statusArr.forEach((forging, index) => {
-        if (forging) {
+      statusArr.forEach((settlement, index) => {
+        if (settlement.value) {
           forgingNodes.push(forgers[index])
         }
       });
