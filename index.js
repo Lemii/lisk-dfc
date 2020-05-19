@@ -67,11 +67,15 @@ const main = async () => {
 
   const forgingNodes = getForgingNodes(forgers);
 
-  let forceShuffle = init ? true : forgingNodes.length === 0;
+  logger(`${forgingNodes} nodes currently forging`, "INF");
+
+  const forceShuffle = init ? true : forgingNodes.length === 0;
 
   if (!init) await preventDoubleForging(forgingNodes[0], forgingNodes);
 
-  if (forceShuffle || shouldShuffle(ts, config.shuffleInterval)) {
+  const shuffleScheduled = shouldShuffle(ts, config.shuffleInterval);
+
+  if (forceShuffle || shuffleScheduled) {
     if (!api) {
       if (config.useMailer) {
         await sendMail({ type: "API WARNING" })
@@ -125,7 +129,9 @@ const main = async () => {
     } else {
       logger(`Position ${queue} is too close to forging, skipping shuffle`, "INF");
     }
-  } else {
+  }
+
+  if (!forceShuffle && !shuffleScheduled) {
     logger(`Time delta of ${config.shuffleInterval} minutes not reached, skipping shuffle`, "INF");
   }
 
