@@ -65,7 +65,7 @@ const main = async () => {
 
   /* Analyze if a shuffle is required by validating the forging status of the node  */
 
-  const forgingNodes = getForgingNodes(forgers);
+  const forgingNodes = await getForgingNodes(forgers);
 
   logger(`${forgingNodes} nodes currently forging`, "INF");
 
