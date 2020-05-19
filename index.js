@@ -67,7 +67,7 @@ const main = async () => {
 
   const forgingNodes = await getForgingNodes(forgers);
 
-  logger(`${forgingNodes} nodes currently forging`, "INF");
+  logger(`${forgingNodes.length} nodes currently forging`, "INF");
 
   const forceShuffle = init ? true : forgingNodes.length === 0;
 
