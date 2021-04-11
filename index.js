@@ -9,7 +9,7 @@ const {
   createBackup,
   restoreBackup,
   normalizeAddresses,
-  getForgersList
+  getForgersList,
 } = require("./helpers");
 
 const {
@@ -19,7 +19,7 @@ const {
   fetchMissedBlocks,
   fetchForgingQueue,
   ensureForgingStatus,
-  preventDoubleForging
+  preventDoubleForging,
 } = require("./utils");
 
 const main = async () => {
@@ -50,7 +50,8 @@ const main = async () => {
 
   /* Detect if the configured delegate missed a block and act accordingly */
   const missedBlocks = await fetchMissedBlocks(api, config.publicKey);
-  if (state.missedBlocks !== null && missedBlocks > state.missedBlocks) {
+  const missedBlocksIncreased = state.missedBlocks !== null && missedBlocks > state.missedBlocks;
+  if (missedBlocksIncreased) {
     logger("Your delegate has missed a block!", "ERR");
 
     if (config.useMailer) {
@@ -101,7 +102,8 @@ const main = async () => {
       const prevForgerStatus = forceShuffle ? false : await setForging(prevForger, false);
       const stateSaved = await saveState({
         node: newForger,
-        missedBlocks
+        ts: Date.now(),
+        missedBlocks,
       });
 
       if (!(newForgerStatus && !prevForgerStatus && stateSaved)) {
@@ -120,7 +122,19 @@ const main = async () => {
       logger(`Position ${queue} is too close to forging, skipping shuffle`, "INF");
     }
   } else {
-    logger(`No action needed.`, "INF");
+    if (missedBlocksIncreased) {
+      const stateSaved = await saveState({
+        node: prevForger,
+        ts: Date.now(),
+        missedBlocks,
+      });
+
+      if (!stateSaved) {
+        restoreBackup();
+      }
+    } else {
+      logger(`No action needed.`, "INF");
+    }
   }
 
   logger("Script finished ✓\n", "INF");
